@@ -49,34 +49,33 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
-        #updateNotification {
+        #syncStatus {
             margin-top: 10px;
             font-size: 0.9em;
-            color: #e74c3c;
-            cursor: pointer;
+            color: #888;
         }
     </style>
 </head>
 <body>
     <div id="app">
-        <h1>Shared Task List (Live Updating)</h1>
+        <h1>Shared Task List</h1>
         <ul id="taskList"></ul>
         <input type="text" id="newTaskInput" placeholder="Add a new task and press Enter...">
-        <div id="updateNotification" style="display: none;" onclick="refreshPage()">New version available. Click to refresh.</div>
+        <div id="syncStatus">Syncing...</div>
     </div>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
     <script>
         // Firebase configuration
-		const firebaseConfig = {
-			apiKey: "AIzaSyA0e0i1uz7O1KS9VAaimYNSjWru5YhGXUQ",
-			authDomain: "shared-task-list-d0802.firebaseapp.com",
-			databaseURL: "https://shared-task-list-d0802-default-rtdb.firebaseio.com",
-			projectId: "shared-task-list-d0802",
-			storageBucket: "shared-task-list-d0802.firebasestorage.app",
-			messagingSenderId: "60196141749",
-			appId: "1:60196141749:web:91eecf297e2fe60aa99cfc"
-		};
+        const firebaseConfig = {
+            apiKey: "AIzaSyA0e0i1uz7O1KS9VAaimYNSjWru5YhGXUQ",
+            authDomain: "shared-task-list-d0802.firebaseapp.com",
+            databaseURL: "https://shared-task-list-d0802-default-rtdb.firebaseio.com",
+            projectId: "shared-task-list-d0802",
+            storageBucket: "shared-task-list-d0802.appspot.com",
+            messagingSenderId: "60196141749",
+            appId: "1:60196141749:web:91eecf297e2fe60aa99cfc"
+        };
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
@@ -86,20 +85,27 @@
         // DOM Elements
         const taskList = document.getElementById("taskList");
         const newTaskInput = document.getElementById("newTaskInput");
-        const updateNotification = document.getElementById("updateNotification");
+        const syncStatus = document.getElementById("syncStatus");
 
-        // Fetch tasks from Firebase
+        // Realtime listener for tasks
         taskRef.on("value", (snapshot) => {
-            const tasks = snapshot.val() || [];
+            const tasks = snapshot.val() || {};
             renderTasks(Object.entries(tasks));
+            syncStatus.textContent = "Tasks are up-to-date.";
         });
 
         // Add a new task
         newTaskInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter" && newTaskInput.value.trim() !== "") {
-                const newTask = { name: newTaskInput.value.trim(), completed: false };
-                taskRef.push(newTask);
-                newTaskInput.value = "";
+            if (e.key === "Enter" && e.target.value.trim() !== "") {
+                const newTask = { name: e.target.value.trim(), completed: false };
+                taskRef.push(newTask)
+                    .then(() => {
+                        e.target.value = ""; // Clear input field
+                    })
+                    .catch((error) => {
+                        console.error("Error adding task:", error);
+                        syncStatus.textContent = "Error adding task.";
+                    });
             }
         });
 
@@ -124,22 +130,11 @@
 
         // Toggle task completion
         function toggleTask(taskId, completed) {
-            taskRef.child(taskId).update({ completed: !completed });
-        }
-
-        // Check for app updates
-        let appVersion = "1";
-        setInterval(async () => {
-            const response = await fetch("https://drive.google.com/uc?export=view&id=FILE_ID?v=" + new Date().getTime());
-            const latestHTML = await response.text();
-            if (!latestHTML.includes(`appVersion = "${appVersion}"`)) {
-                updateNotification.style.display = "block";
-            }
-        }, 60000);
-
-        // Refresh page
-        function refreshPage() {
-            window.location.reload();
+            taskRef.child(taskId).update({ completed: !completed })
+                .catch((error) => {
+                    console.error("Error updating task:", error);
+                    syncStatus.textContent = "Error updating task.";
+                });
         }
     </script>
 </body>
