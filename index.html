@@ -23,11 +23,6 @@
             border-radius: 8px;
             text-align: center;
         }
-        h1 {
-            font-size: 1.5em;
-            color: #333;
-            margin-bottom: 20px;
-        }
         ul {
             list-style-type: none;
             padding: 0;
@@ -53,22 +48,6 @@
             margin-top: 10px;
             font-size: 0.9em;
             color: #888;
-        }
-        .tag {
-            font-weight: bold;
-            margin-left: 5px;
-        }
-        .tag-waiting {
-            color: gray;
-        }
-        .tag-urgent {
-            color: red;
-        }
-        .tag-Krystin {
-            color: blue;
-        }
-        .tag-Rob {
-            color: green;
         }
     </style>
 </head>
@@ -107,10 +86,20 @@
         taskRef.on("value", (snapshot) => {
             const tasks = snapshot.val();
             if (tasks) {
-                renderTasks(Object.entries(tasks));
+                taskList.innerHTML = "";
+                Object.entries(tasks).forEach(([id, task]) => {
+                    const li = document.createElement("li");
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.checked = task.completed;
+                    li.appendChild(checkbox);
+                    const text = document.createTextNode(task.name);
+                    li.appendChild(text);
+                    taskList.appendChild(li);
+                });
                 syncStatus.textContent = "Tasks are up-to-date.";
             } else {
-                taskList.innerHTML = ""; // Clear the task list
+                taskList.innerHTML = "";
                 syncStatus.textContent = "No tasks available.";
             }
         });
@@ -119,9 +108,9 @@
         newTaskInput.addEventListener("keypress", (e) => {
             if (e.key === "Enter" && e.target.value.trim() !== "") {
                 const newTask = { name: e.target.value.trim(), completed: false };
-                push(taskRef, newTask)
+                taskRef.push(newTask)
                     .then(() => {
-                        e.target.value = ""; // Clear input field
+                        newTaskInput.value = "";
                         syncStatus.textContent = "Task added successfully!";
                     })
                     .catch((error) => {
@@ -130,49 +119,6 @@
                     });
             }
         });
-
-        // Render tasks
-        function renderTasks(tasks) {
-            taskList.innerHTML = "";
-            tasks.forEach(([id, task]) => {
-                const li = document.createElement("li");
-
-                const checkbox = document.createElement("input");
-                checkbox.type = "checkbox";
-                checkbox.checked = task.completed;
-                checkbox.addEventListener("change", () => toggleTask(id, task.completed));
-                li.appendChild(checkbox);
-
-                const text = parseTaskText(task.name);
-                const span = document.createElement("span");
-                span.innerHTML = text;
-                li.appendChild(span);
-
-                taskList.appendChild(li);
-            });
-        }
-
-        // Parse task text for tags and apply styles
-        function parseTaskText(text) {
-            return text.replace(/#(\w+)/g, (match, tagName) => {
-                const tagClass = tagName.toLowerCase() === "waiting" ? "tag-waiting"
-                                : tagName.toLowerCase() === "urgent" ? "tag-urgent"
-                                : tagName === "Krystin" ? "tag-Krystin"
-                                : tagName === "Rob" ? "tag-Rob"
-                                : "tag";
-                return `<span class="${tagClass}">${match}</span>`;
-            });
-        }
-
-        // Toggle task completion
-        function toggleTask(taskId, completed) {
-            const taskToUpdate = ref(database, `tasks/${taskId}`);
-            update(taskToUpdate, { completed: !completed })
-                .catch((error) => {
-                    console.error("Error updating task:", error);
-                    syncStatus.textContent = "Error updating task.";
-                });
-        }
     </script>
 </body>
 </html>
