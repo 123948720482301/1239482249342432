@@ -103,20 +103,20 @@
         }
     });
 
-    // Add a new task
-    newTaskInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter" && e.target.value.trim() !== "") {
-            const newTask = { name: e.target.value.trim(), completed: false };
-            push(taskRef, newTask)
-                .then(() => {
-                    e.target.value = ""; // Clear input field
-                })
-                .catch((error) => {
-                    console.error("Error adding task:", error);
-                    syncStatus.textContent = "Error adding task.";
-                });
-        }
-    });
+    // Add a new tasknewTaskInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter" && e.target.value.trim() !== "") {
+        const newTask = { name: e.target.value.trim(), completed: false };
+        push(taskRef, newTask)
+            .then(() => {
+                e.target.value = ""; // Clear input field
+                syncStatus.textContent = "Task added successfully!";
+            })
+            .catch((error) => {
+                console.error("Error adding task:", error);
+                syncStatus.textContent = "Error adding task.";
+            });
+    }
+});
 
     // Render tasks
     function renderTasks(tasks) {
