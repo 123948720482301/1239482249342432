@@ -54,6 +54,21 @@
             color: gray;
             text-decoration: line-through;
         }
+        .tag {
+            font-weight: bold;
+        }
+        .tag-waiting {
+            color: gray;
+        }
+        .tag-urgent {
+            color: red;
+        }
+        .mention-krystin {
+            color: blue;
+        }
+        .mention-rob {
+            color: green;
+        }
         .edit-mode input {
             width: calc(100% - 30px);
             padding: 5px;
@@ -151,7 +166,7 @@
 
             // Task name
             const span = document.createElement("span");
-            span.textContent = task.name;
+            span.innerHTML = parseTaskText(task.name);
             span.addEventListener("dblclick", () => enterEditMode(li, id, task));
             li.appendChild(span);
 
@@ -161,6 +176,25 @@
             if (isCompleted) {
                 setTimeout(() => removeTask(id), 120000);
             }
+        }
+
+        // Parse task text for tags and mentions
+        function parseTaskText(text) {
+            return text
+                .replace(/#(\w+)/g, (match, tagName) => {
+                    const tagClass = tagName.toLowerCase() === "waiting" ? "tag-waiting"
+                                    : tagName.toLowerCase() === "urgent" ? "tag-urgent"
+                                    : "tag";
+                    return `<span class="${tagClass}">${match}</span>`;
+                })
+                .replace(/@(\w+)/g, (match, mentionName) => {
+                    const mentionClass = mentionName.toLowerCase() === "krystin" ? "mention-krystin"
+                                        : mentionName.toLowerCase() === "rob" ? "mention-rob"
+                                        : "";
+                    return mentionClass
+                        ? `<span class="${mentionClass}">${match}</span>`
+                        : match;
+                });
         }
 
         // Toggle task completion
