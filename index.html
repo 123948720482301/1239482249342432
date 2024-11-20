@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shared Task List v0.1</title>
+    <title>Shared Task List</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -70,7 +70,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyA0e0i1uz7O1KS9VAaimYNSjWru5YhGXUQ",
             authDomain: "shared-task-list-d0802.firebaseapp.com",
-            databaseURL: "https://shared-task-list-d0802-default-rtdb.firebaseio.com/tasks",
+            databaseURL: "https://shared-task-list-d0802-default-rtdb.firebaseio.com",
             projectId: "shared-task-list-d0802",
             storageBucket: "shared-task-list-d0802.appspot.com",
             messagingSenderId: "60196141749",
@@ -89,9 +89,14 @@
 
         // Realtime listener for tasks
         taskRef.on("value", (snapshot) => {
-            const tasks = snapshot.val() || {};
-            renderTasks(Object.entries(tasks));
-            syncStatus.textContent = "Tasks are up-to-date.";
+            const tasks = snapshot.val();
+            if (tasks) {
+                renderTasks(Object.entries(tasks));
+                syncStatus.textContent = "Tasks are up-to-date.";
+            } else {
+                taskList.innerHTML = ""; // Clear the task list
+                syncStatus.textContent = "No tasks available.";
+            }
         });
 
         // Add a new task
