@@ -49,11 +49,27 @@
             font-size: 0.9em;
             color: #888;
         }
+        .tag {
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .tag-waiting {
+            color: gray;
+        }
+        .tag-urgent {
+            color: red;
+        }
+        .tag-Krystin {
+            color: blue;
+        }
+        .tag-Rob {
+            color: green;
+        }
     </style>
 </head>
 <body>
     <div id="app">
-        <h1>Shared Task List v0.3</h1>
+        <h1>Shared Task List</h1>
         <ul id="taskList"></ul>
         <input type="text" id="newTaskInput" placeholder="Add a new task and press Enter...">
         <div id="syncStatus">Syncing...</div>
@@ -112,7 +128,7 @@
             }
         });
 
-        // Render tasks
+        // Render tasks with tag styling
         function renderTasks(tasks) {
             taskList.innerHTML = "";
             tasks.forEach(([id, task]) => {
@@ -124,10 +140,23 @@
                 checkbox.addEventListener("change", () => toggleTask(id, task.completed));
                 li.appendChild(checkbox);
 
-                const text = document.createTextNode(task.name);
-                li.appendChild(text);
+                const span = document.createElement("span");
+                span.innerHTML = parseTaskText(task.name);
+                li.appendChild(span);
 
                 taskList.appendChild(li);
+            });
+        }
+
+        // Parse task text for tags and apply styles
+        function parseTaskText(text) {
+            return text.replace(/#(\w+)/g, (match, tagName) => {
+                const tagClass = tagName.toLowerCase() === "waiting" ? "tag-waiting"
+                                : tagName.toLowerCase() === "urgent" ? "tag-urgent"
+                                : tagName === "Krystin" ? "tag-Krystin"
+                                : tagName === "Rob" ? "tag-Rob"
+                                : "tag";
+                return `<span class="${tagClass}">${match}</span>`;
             });
         }
 
