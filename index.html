@@ -53,7 +53,7 @@
 </head>
 <body>
     <div id="app">
-        <h1>Shared Task List v.01</h1>
+        <h1>Shared Task List v.02</h1>
         <ul id="taskList"></ul>
         <input type="text" id="newTaskInput" placeholder="Add a new task and press Enter...">
         <div id="syncStatus">Syncing...</div>
@@ -63,14 +63,14 @@
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyA0e0i1uz7O1KS9VAaimYNSjWru5YhGXUQ",
-            authDomain: "shared-task-list-d0802.firebaseapp.com",
-            databaseURL: "https://shared-task-list-d0802-default-rtdb.firebaseio.com",
-            projectId: "shared-task-list-d0802",
-            storageBucket: "shared-task-list-d0802.appspot.com",
-            messagingSenderId: "60196141749",
-            appId: "1:60196141749:web:91eecf297e2fe60aa99cfc"
-        };
+        apiKey: "AIzaSyA0e0i1uz7O1KS9VAaimYNSjWru5YhGXUQ",
+        authDomain: "shared-task-list-d0802.firebaseapp.com",
+        databaseURL: "https://shared-task-list-d0802-default-rtdb.firebaseio.com",
+        projectId: "shared-task-list-d0802",
+        storageBucket: "shared-task-list-d0802.appspot.com",
+        messagingSenderId: "60196141749",
+        appId: "1:60196141749:web:91eecf297e2fe60aa99cfc"
+    };
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
