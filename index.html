@@ -54,6 +54,22 @@
             font-size: 0.9em;
             color: #888;
         }
+        .tag {
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .tag-waiting {
+            color: gray;
+        }
+        .tag-urgent {
+            color: red;
+        }
+        .tag-Krystin {
+            color: blue;
+        }
+        .tag-Rob {
+            color: green;
+        }
     </style>
 </head>
 <body>
@@ -65,87 +81,98 @@
     </div>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
-<script type="module">
-    // Import Firebase modules
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-    import { getDatabase, ref, onValue, push, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA0e0i1uz7O1KS9VAaimYNSjWru5YhGXUQ",
+            authDomain: "shared-task-list-d0802.firebaseapp.com",
+            databaseURL: "https://shared-task-list-d0802-default-rtdb.firebaseio.com",
+            projectId: "shared-task-list-d0802",
+            storageBucket: "shared-task-list-d0802.appspot.com",
+            messagingSenderId: "60196141749",
+            appId: "1:60196141749:web:91eecf297e2fe60aa99cfc"
+        };
 
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyA0e0i1uz7O1KS9VAaimYNSjWru5YhGXUQ",
-        authDomain: "shared-task-list-d0802.firebaseapp.com",
-        databaseURL: "https://shared-task-list-d0802-default-rtdb.firebaseio.com",
-        projectId: "shared-task-list-d0802",
-        storageBucket: "shared-task-list-d0802.appspot.com",
-        messagingSenderId: "60196141749",
-        appId: "1:60196141749:web:91eecf297e2fe60aa99cfc"
-    };
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const taskRef = database.ref("tasks");
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-    const taskRef = ref(database, "tasks");
+        // DOM Elements
+        const taskList = document.getElementById("taskList");
+        const newTaskInput = document.getElementById("newTaskInput");
+        const syncStatus = document.getElementById("syncStatus");
 
-    // DOM Elements
-    const taskList = document.getElementById("taskList");
-    const newTaskInput = document.getElementById("newTaskInput");
-    const syncStatus = document.getElementById("syncStatus");
-
-    // Realtime listener for tasks
-    onValue(taskRef, (snapshot) => {
-        const tasks = snapshot.val();
-        if (tasks) {
-            renderTasks(Object.entries(tasks));
-            syncStatus.textContent = "Tasks are up-to-date.";
-        } else {
-            taskList.innerHTML = ""; // Clear the task list
-            syncStatus.textContent = "No tasks available.";
-        }
-    });
-
-    // Add a new tasknewTaskInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter" && e.target.value.trim() !== "") {
-        const newTask = { name: e.target.value.trim(), completed: false };
-        push(taskRef, newTask)
-            .then(() => {
-                e.target.value = ""; // Clear input field
-                syncStatus.textContent = "Task added successfully!";
-            })
-            .catch((error) => {
-                console.error("Error adding task:", error);
-                syncStatus.textContent = "Error adding task.";
-            });
-    }
-});
-
-    // Render tasks
-    function renderTasks(tasks) {
-        taskList.innerHTML = "";
-        tasks.forEach(([id, task]) => {
-            const li = document.createElement("li");
-
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.checked = task.completed;
-            checkbox.addEventListener("change", () => toggleTask(id, task.completed));
-            li.appendChild(checkbox);
-
-            const text = document.createTextNode(task.name);
-            li.appendChild(text);
-
-            taskList.appendChild(li);
+        // Realtime listener for tasks
+        taskRef.on("value", (snapshot) => {
+            const tasks = snapshot.val();
+            if (tasks) {
+                renderTasks(Object.entries(tasks));
+                syncStatus.textContent = "Tasks are up-to-date.";
+            } else {
+                taskList.innerHTML = ""; // Clear the task list
+                syncStatus.textContent = "No tasks available.";
+            }
         });
-    }
 
-    // Toggle task completion
-    function toggleTask(taskId, completed) {
-        const taskToUpdate = ref(database, `tasks/${taskId}`);
-        update(taskToUpdate, { completed: !completed })
-            .catch((error) => {
-                console.error("Error updating task:", error);
-                syncStatus.textContent = "Error updating task.";
+        // Add a new task
+        newTaskInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter" && e.target.value.trim() !== "") {
+                const newTask = { name: e.target.value.trim(), completed: false };
+                push(taskRef, newTask)
+                    .then(() => {
+                        e.target.value = ""; // Clear input field
+                        syncStatus.textContent = "Task added successfully!";
+                    })
+                    .catch((error) => {
+                        console.error("Error adding task:", error);
+                        syncStatus.textContent = "Error adding task.";
+                    });
+            }
+        });
+
+        // Render tasks
+        function renderTasks(tasks) {
+            taskList.innerHTML = "";
+            tasks.forEach(([id, task]) => {
+                const li = document.createElement("li");
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = task.completed;
+                checkbox.addEventListener("change", () => toggleTask(id, task.completed));
+                li.appendChild(checkbox);
+
+                const text = parseTaskText(task.name);
+                const span = document.createElement("span");
+                span.innerHTML = text;
+                li.appendChild(span);
+
+                taskList.appendChild(li);
             });
-    }
-</script>
+        }
+
+        // Parse task text for tags and apply styles
+        function parseTaskText(text) {
+            return text.replace(/#(\w+)/g, (match, tagName) => {
+                const tagClass = tagName.toLowerCase() === "waiting" ? "tag-waiting"
+                                : tagName.toLowerCase() === "urgent" ? "tag-urgent"
+                                : tagName === "Krystin" ? "tag-Krystin"
+                                : tagName === "Rob" ? "tag-Rob"
+                                : "tag";
+                return `<span class="${tagClass}">${match}</span>`;
+            });
+        }
+
+        // Toggle task completion
+        function toggleTask(taskId, completed) {
+            const taskToUpdate = ref(database, `tasks/${taskId}`);
+            update(taskToUpdate, { completed: !completed })
+                .catch((error) => {
+                    console.error("Error updating task:", error);
+                    syncStatus.textContent = "Error updating task.";
+                });
+        }
+    </script>
 </body>
 </html>
